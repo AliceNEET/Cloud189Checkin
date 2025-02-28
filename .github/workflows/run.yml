@@ -14,28 +14,35 @@ jobs:
     runs-on: ubuntu-latest
     environment: user
     steps:
-      - uses: actions/checkout@main
-      - name: Setup Node.js environment
+      - name: 🔌 Check out code
+        uses: actions/checkout@main
+
+      - name: 🔨 Setup Node.js environment
         uses: actions/setup-node@main
         with:
           node-version: 18
-      - name: init secrets
+          cache: npm
+    
+      - name: 🔧 Init secrets
         uses: shine1594/secrets-to-env-action@master
         with:
           secrets: ${{ toJSON(secrets) }}
           secrets_env: production
           prefix_prod: ""
           file_name_prod: .env
-      - name: init
+
+      - name: 📡 Init dependencies
         run: npm install
-      - name: run
-        id: run
+
+      - name: 🚀 Run
         uses: nick-fields/retry@master
         with:
-          timeout_minutes: 10
+          timeout_minutes: 30
           max_attempts: 3
           command: npm start
-      - name: Keep Running
+
+      - name: 🚗 Keep Running
+        if: github.event_name == 'schedule'
         run: |
           git config --local user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
           git config --local user.name "${{ github.actor }}"
@@ -43,7 +50,8 @@ jobs:
           git pull --rebase --autostash
           git commit --allow-empty -m "Keep Running..."
           git push
-      - name: Delete old workflow run
+
+      - name: 🎉 Delete old workflow run
         uses: Mattraks/delete-workflow-runs@main
         with:
           token: ${{ github.token }}
